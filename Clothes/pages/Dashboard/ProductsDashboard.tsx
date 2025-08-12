@@ -12,13 +12,17 @@ export interface ProductProps {
   image: string;
   price: number;
   sales: number;
+  section?: string; // New field for section
 }
 
 export default function ProductsDashboard() {
   const [products, setProducts] = useState<ProductProps[]>([]);
-  const [newProduct, setNewProduct] = useState({ name: "", image: "", price: 0, sales: 0 });
+  const [newProduct, setNewProduct] = useState({ name: "", image: "", price: 0, sales: 0, section: "" });
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Predefined sections for the dropdown
+  const sections = ["Featured", "New Arrivals", "Best Sellers", "Regular"];
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -52,10 +56,9 @@ export default function ProductsDashboard() {
           productId: "",
         });
         await updateDoc(doc(db, "products", docRef.id), { productId: docRef.id });
-
         setProducts([...products, { id: docRef.id, productId: docRef.id, ...newProduct }]);
       }
-      setNewProduct({ name: "", image: "", price: 0, sales: 0 });
+      setNewProduct({ name: "", image: "", price: 0, sales: 0, section: "" });
       setEditingId(null);
     } catch (error) {
       console.error("Error adding/updating product:", error);
@@ -68,6 +71,7 @@ export default function ProductsDashboard() {
       image: product.image,
       price: product.price,
       sales: product.sales || 0,
+      section: product.section || "",
     });
     setEditingId(product.id || null);
   };
@@ -81,15 +85,14 @@ export default function ProductsDashboard() {
     }
   };
 
-  // زيادة مبيعات المنتج ب 1 - تعيينه كـ Best Seller
   const markAsBestSeller = async (product: ProductProps) => {
     if (!product.id) return;
     try {
       const productRef = doc(db, "products", product.id);
       const newSales = (product.sales || 0) + 1;
-      await updateDoc(productRef, { sales: newSales });
+      await updateDoc(productRef, { sales: newSales, section: "Best Sellers" }); // Update section to Best Sellers
       setProducts(products.map((p) =>
-        p.id === product.id ? { ...p, sales: newSales } : p
+        p.id === product.id ? { ...p, sales: newSales, section: "Best Sellers" } : p
       ));
     } catch (error) {
       console.error("Error marking product as best seller:", error);
@@ -109,7 +112,6 @@ export default function ProductsDashboard() {
       <h1 className="text-3xl font-bold mb-6 text-zinc-900">Manage Products</h1>
 
       <form onSubmit={handleAddOrUpdateProduct} className="mb-8 p-6 bg-white rounded-lg shadow-md">
-        {/* form fields ... */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-zinc-700">Product Name</label>
           <input
@@ -153,6 +155,22 @@ export default function ProductsDashboard() {
             required
           />
         </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-zinc-700">Section</label>
+          <select
+            value={newProduct.section}
+            onChange={(e) => setNewProduct({ ...newProduct, section: e.target.value })}
+            className="mt-1 p-2 w-full border rounded-md"
+            required
+          >
+            <option value="" disabled>Select a section</option>
+            {sections.map((section) => (
+              <option key={section} value={section}>
+                {section}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -163,7 +181,7 @@ export default function ProductsDashboard() {
           <button
             type="button"
             onClick={() => {
-              setNewProduct({ name: "", image: "", price: 0, sales: 0 });
+              setNewProduct({ name: "", image: "", price: 0, sales: 0, section: "" });
               setEditingId(null);
             }}
             className="ml-4 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
@@ -187,6 +205,7 @@ export default function ProductsDashboard() {
             <h3 className="mt-2 text-lg font-semibold text-zinc-900">{product.name}</h3>
             <p className="text-sm text-zinc-600">${product.price}</p>
             <p className="text-xs text-zinc-400">Sales: {product.sales}</p>
+            <p className="text-xs text-zinc-400">Section: {product.section || "None"}</p>
             <div className="mt-2 flex justify-between">
               <button
                 onClick={() => handleEdit(product)}

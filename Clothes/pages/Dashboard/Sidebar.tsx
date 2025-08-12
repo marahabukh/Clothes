@@ -21,6 +21,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 import CategoriesDashboard from "./categories"
 import ProductsDashboard from "./ProductsDashboard"
+import HeroDashboard from "./HeroDash"
+import HeroDash from "./HeroDash"
+
 // هنا استورد باقي الصفحات التي تريد عرضها مثل DashboardPage, ProductsPage, etc.
 // على سبيل المثال:
 // import DashboardPage from "./dashboard"
@@ -46,7 +49,7 @@ export default function Sidebar({ className }: SidebarProps) {
       case "categories":
         return <CategoriesDashboard />
       case "hero":
-        return <div>Hero Content</div>
+        return <HeroDash/>
       case "users":
         return <div>Users Content</div>
       case "orders":
@@ -54,7 +57,7 @@ export default function Sidebar({ className }: SidebarProps) {
       case "discounts":
         return <div>Discount Codes Content</div>
       case "chat":
-        return <div>Chat Content</div>
+
       default:
         return <div>Select a section</div>
     }
